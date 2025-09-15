@@ -243,6 +243,7 @@ class Container:
     def _build_plan(self, root_keys: List[Key], *, allow_async: bool) -> _Plan:
         """Compile a dependency plan for the given root keys.
 
+        Uses an iterative DFS to avoid Python recursion limits on deep graphs.
         Returns a topologically sorted order and dependency map. Fails early on
         cycles or the presence of async providers in a sync-only plan.
         """
@@ -252,26 +253,31 @@ class Container:
         order: List[Key] = []
         has_async = False
 
-        def visit(k: Key) -> None:
-            nonlocal has_async
-            st = state.get(k, 0)
-            if st == 1:
-                raise RuntimeError(f"Dependency cycle detected at key: {k}")
-            if st == 2:
-                return
-            state[k] = 1
-
-            _, _, is_async, dep_keys = self._core.get_provider_info(k)
-            deps[k] = list(dep_keys)
-            if is_async:
-                has_async = True
-            for d in deps[k]:
-                visit(d)
-            state[k] = 2
-            order.append(k)
-
-        for rk in root_keys:
-            visit(rk)
+        for root in root_keys:
+            if state.get(root, 0) == 2:
+                continue
+            stack: List[Tuple[Key, int]] = [(root, 0)]  # (key, phase 0=enter,1=exit)
+            while stack:
+                k, phase = stack.pop()
+                st = state.get(k, 0)
+                if phase == 0:
+                    if st == 1:
+                        raise RuntimeError(f"Dependency cycle detected at key: {k}")
+                    if st == 2:
+                        continue
+                    state[k] = 1
+                    _, _, is_async, dep_keys = self._core.get_provider_info(k)
+                    dlist = list(dep_keys)
+                    deps[k] = dlist
+                    if is_async:
+                        has_async = True
+                    stack.append((k, 1))
+                    for d in reversed(dlist):
+                        if state.get(d, 0) != 2:
+                            stack.append((d, 0))
+                else:
+                    state[k] = 2
+                    order.append(k)
 
         if not allow_async and has_async:
             raise RuntimeError("Async provider found in sync plan; use @ainject")

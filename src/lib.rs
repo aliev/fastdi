@@ -189,7 +189,7 @@ impl ContainerInner {
                 _ => {}
             }
             state.insert(k.to_string(), 1);
-            let (callable, meta) = me
+            let (_, meta) = me
                 .get_provider_meta(k)
                 .ok_or_else(|| PyKeyError::new_err(format!("No provider registered for key: {}", k)))?;
             if meta.is_async {

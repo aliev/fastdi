@@ -2,6 +2,12 @@ site_name: FastDI
 nav:
   - Home: index.md
   - Architecture: architecture.md
+  - Benchmarks: benchmarks.md
+  - Guides:
+      - Concepts: guides/concepts.md
+      - Quick Start: guides/quickstart.md
+      - Hooks: guides/hooks.md
+      - Recipes: guides/recipes.md
   - API:
       - Container: reference/container.md
       - Decorators: reference/decorators.md
