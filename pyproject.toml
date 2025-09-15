@@ -1,0 +1,28 @@
+[build-system]
+requires = ["maturin>=1.4,<2.0"]
+build-backend = "maturin"
+
+[project]
+name = "fastdi"
+version = "0.1.0"
+description = "FastDI — Rust‑powered Dependency Injection for Python"
+authors = [
+  { name = "FastDI authors" }
+]
+readme = "RFC.md"
+requires-python = ">=3.8"
+license = { text = "Proprietary" }
+classifiers = [
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Rust",
+  "Programming Language :: Python :: Implementation :: CPython",
+  "License :: Other/Proprietary License",
+  "Operating System :: OS Independent",
+]
+dependencies = []
+
+[tool.maturin]
+bindings = "pyo3"
+# Expose the Rust module as a top-level to avoid import shadowing
+module-name = "_fastdi_core"
