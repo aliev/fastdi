@@ -63,6 +63,7 @@ Notes:
   - Implementation uses a `WeakKeyDictionary[asyncio.Task, dict]` so entries are garbage-collected when tasks finish.
   - Outside of any running task, a `ContextVar` fallback holds a separate per-context dict.
   - Only available on the async path (`@ainject`/`resolve_async`/async plan execution). The sync path does not consult the request cache.
+  - See the recipe “Request scope in async chains” for a concrete example; and the note showing why request scope is not applied on the sync path.
   - Good for values tied to a single request (IDs, auth context, per-request DB sessions if desired).
 
 Priority: if `singleton=True` is set, it overrides `scope` and enforces singleton caching. Otherwise, `scope` controls caching (`request`/`transient`).
@@ -74,6 +75,7 @@ Priority: if `singleton=True` is set, it overrides `scope` and enforces singleto
 - Executes via the Rust plan executor (topologically, without recursion).
 - Fails fast if any provider in the graph is async (use `@ainject` instead).
 - The resulting wrapper takes no arguments; all parameters marked with `Depends` are injected.
+ 
 
 ```
 @inject(c)
@@ -97,6 +99,11 @@ async def handler(n: Annotated[int, Depends(get_number)]):
 
 await handler()
 ```
+
+### Method variants
+
+- `@inject_method(container)`: sync instance method injection; preserves `self` and injects dependencies positionally after it.
+- `@ainject_method(container)`: async instance method injection; preserves `self` and awaits providers before calling the original method.
 
 ## override
 

@@ -9,6 +9,7 @@ def test_annotated_in_default():
     class Service:
         def __init__(self, v: int):
             self.v = v
+
         def ping(self) -> int:
             return self.v
 
@@ -29,6 +30,7 @@ def test_annotated_in_annotation():
     class Service:
         def __init__(self, v: int):
             self.v = v
+
         def ping(self) -> int:
             return self.v
 
@@ -41,4 +43,3 @@ def test_annotated_in_annotation():
         return service.ping()
 
     assert handler() == 9
-

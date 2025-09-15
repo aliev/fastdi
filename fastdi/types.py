@@ -6,7 +6,18 @@ extracting dependency metadata from callables.
 
 from __future__ import annotations
 
-from typing import Any, Callable, Dict, List, Optional, Tuple, Protocol, Optional as _Optional, get_args, get_origin, Annotated as _Annotated
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    List,
+    Optional,
+    Tuple,
+    Protocol,
+    get_args,
+    get_origin,
+    Annotated,
+)
 import inspect
 
 # Public type aliases
@@ -21,15 +32,29 @@ class CoreContainerProto(Protocol):
     This enables static typing for the PyO3-backed `_fastdi_core.Container`.
     """
 
-    def register_provider(self, key: str, callable: Callable[..., Any], singleton: bool, is_async: bool, dep_keys: List[str]) -> None: ...
+    def register_provider(
+        self,
+        key: str,
+        callable: Callable[..., Any],
+        singleton: bool,
+        is_async: bool,
+        dep_keys: List[str],
+    ) -> None: ...
     def resolve(self, key: str) -> Any: ...
     def resolve_many(self, keys: List[str]) -> List[Any]: ...
     def resolve_many_plan(self, keys: List[str]) -> List[Any]: ...
     def begin_override_layer(self) -> None: ...
-    def set_override(self, key: str, callable: Callable[..., Any], singleton: bool, is_async: bool, dep_keys: List[str]) -> None: ...
+    def set_override(
+        self,
+        key: str,
+        callable: Callable[..., Any],
+        singleton: bool,
+        is_async: bool,
+        dep_keys: List[str],
+    ) -> None: ...
     def end_override_layer(self) -> None: ...
     def get_provider_info(self, key: str) -> Tuple[Callable[..., Any], bool, bool, List[str]]: ...
-    def get_cached(self, key: str) -> _Optional[Any]: ...
+    def get_cached(self, key: str) -> Optional[Any]: ...
     def set_cached(self, key: str, value: Any) -> None: ...
 
 
@@ -76,7 +101,7 @@ def extract_dep_keys(func: Callable[..., Any]) -> List[Key]:
 
     def _from_annotated(obj: Any) -> Optional[Key]:
         org = get_origin(obj)
-        if org is _Annotated:
+        if org is Annotated:
             for meta in get_args(obj)[1:]:
                 if isinstance(meta, Depends):
                     return meta.key

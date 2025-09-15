@@ -37,4 +37,3 @@ async def test_plan_rebuild_on_override_changes_graph():
 
     # After override ends, plan should rebuild again to the original shape
     assert await handler() == 6
-

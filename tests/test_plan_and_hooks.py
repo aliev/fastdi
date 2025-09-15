@@ -17,6 +17,7 @@ def test_cycle_detected_at_decoration_sync():
 
     # Decoration should raise due to cycle
     with pytest.raises(RuntimeError):
+
         @inject(c)
         def h(x=Depends("a")):
             return x

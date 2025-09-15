@@ -14,7 +14,7 @@ import time
 import weakref
 from contextlib import contextmanager
 from dataclasses import dataclass
-from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Literal, cast
+from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, cast
 
 from .types import Key, Scope, Hook, CoreContainerProto, extract_dep_keys, make_key
 
@@ -49,9 +49,7 @@ class Container:
         self._core: CoreContainerProto = cast(CoreContainerProto, _core.Container())
 
         # Request-scope cache per asyncio Task; GC-friendly via WeakKeyDictionary.
-        self._task_caches: "weakref.WeakKeyDictionary[asyncio.Task, Dict[str, Any]]" = (
-            weakref.WeakKeyDictionary()
-        )
+        self._task_caches: "weakref.WeakKeyDictionary[asyncio.Task, Dict[str, Any]]" = weakref.WeakKeyDictionary()
         # Fallback ContextVar for non-async contexts.
         self._fallback_cache: contextvars.ContextVar[Dict[str, Any]] = contextvars.ContextVar(
             "fastdi_request_cache_fallback"
@@ -227,7 +225,10 @@ class Container:
         res = callable_obj(*args)
         if is_async:
             res = await res
-        self._emit("provider_end", {"key": key, "async": is_async, "duration_s": time.perf_counter() - start})
+        self._emit(
+            "provider_end",
+            {"key": key, "async": is_async, "duration_s": time.perf_counter() - start},
+        )
 
         # Cache
         if singleton:
@@ -314,7 +315,10 @@ class Container:
             res = callable_obj(*args)
             if is_async:
                 res = await res
-            self._emit("provider_end", {"key": key, "async": is_async, "duration_s": time.perf_counter() - start})
+            self._emit(
+                "provider_end",
+                {"key": key, "async": is_async, "duration_s": time.perf_counter() - start},
+            )
 
             if singleton:
                 self._core.set_cached(key, res)

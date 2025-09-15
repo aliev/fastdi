@@ -207,8 +207,8 @@ c.add_hook(metrics)
 Use `@ainject` for async handlers. Async providers are awaited automatically; sync paths will raise if they encounter an async provider.
 
 ## Notes
-- The sync `@inject` path compiles and validates a plan but executes via the Rust recursive resolver; async plans are executed in Python iteratively in topological order.
-- Wheels are not published yet. Use `maturin develop` for local development.
+- The sync `@inject` path compiles and validates a plan and executes via the Rust plan executor (topological, non-recursive). Async plans are executed in Python iteratively with awaits.
+- Wheels are not published yet. Use `maturin develop -r` for local development.
 
 ## Managing Dev Dependencies
 

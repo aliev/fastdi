@@ -10,11 +10,13 @@ See the API reference for details.
 
 ## Quick Start
 
-```
+```bash
 uv sync --dev
 uv run maturin develop -r -q
 
-python - << 'PY'
+```
+
+```python
 from typing import Annotated, Protocol
 from fastdi import Container, Depends, provide, inject
 
@@ -41,12 +43,11 @@ def handler(svc: Annotated[Service, Depends(get_service)]):
     return svc.ping()
 
 print(handler())
-PY
 ```
 
 ## Hooks (Observability)
 
-```
+```python
 from fastdi import Container
 c = Container()
 

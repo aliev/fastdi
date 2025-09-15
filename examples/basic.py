@@ -17,8 +17,10 @@ def main():
         class ServiceImpl:
             def __init__(self, db):
                 self.db = db
+
             def ping(self):
                 return {"ok": True, "via": self.db["db"]}
+
         return ServiceImpl(db)
 
     @inject(container)

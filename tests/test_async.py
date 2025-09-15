@@ -1,4 +1,5 @@
 import asyncio
+from typing import Annotated
 import pytest
 
 from fastdi import Container, Depends, provide, ainject
@@ -14,7 +15,7 @@ async def test_async_inject_and_request_scope():
         return 40
 
     @provide(c)
-    async def inc(x=Depends(base)):
+    async def inc(x: Annotated[int, Depends(base)]):
         await asyncio.sleep(0)
         return x + 2
 
@@ -43,4 +44,3 @@ async def test_async_inject_and_request_scope():
 
     id1, id2 = await asyncio.gather(get_id(), get_id())
     assert id1 != id2  # different across tasks
-

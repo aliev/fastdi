@@ -56,14 +56,14 @@ def inject(container: Container):
     def decorator(func: Callable[..., R]) -> Callable[[], R]:
         dep_keys = extract_dep_keys(func)
         # compile/validate now and capture epoch
-        _ = container._build_plan(dep_keys, allow_async=False)
+        plan = container._build_plan(dep_keys, allow_async=False)
         validated_epoch = container._epoch
 
         def wrapper() -> R:
-            nonlocal validated_epoch
+            nonlocal validated_epoch, plan
             # Re-validate on epoch change
             if container._epoch != validated_epoch:
-                _ = container._build_plan(dep_keys, allow_async=False)
+                plan = container._build_plan(dep_keys, allow_async=False)
                 validated_epoch = container._epoch
             # Use Rust plan executor for sync path
             values = list(container._core.resolve_many_plan(list(dep_keys)))
@@ -103,6 +103,73 @@ def ainject(container: Container):
             computed = await container._run_plan_async(plan)
             values = [computed[k] for k in dep_keys]
             return await func(*values)  # type: ignore[misc]
+
+        try:
+            wrapper.__name__ = func.__name__  # type: ignore[attr-defined]
+            wrapper.__doc__ = func.__doc__
+            wrapper.__module__ = func.__module__
+        except Exception:
+            pass
+        return wrapper
+
+    return decorator
+
+
+def inject_method(container: Container):
+    """Decorator for sync instance methods that need injection.
+
+    The resulting wrapper expects to be called as a bound method (i.e., with
+    ``self``). Dependencies declared with ``Depends`` are injected and passed
+    positionally after ``self``.
+    """
+
+    def decorator(func: Callable[..., R]) -> Callable[[Any], R]:
+        dep_keys = extract_dep_keys(func)
+        plan = container._build_plan(dep_keys, allow_async=False)
+        validated_epoch = container._epoch
+
+        def wrapper(self: Any) -> R:
+            nonlocal plan, validated_epoch
+            if container._epoch != validated_epoch:
+                plan = container._build_plan(dep_keys, allow_async=False)
+                validated_epoch = container._epoch
+            values = list(container._core.resolve_many_plan(list(dep_keys)))
+            return func(self, *values)  # type: ignore[misc]
+
+        try:
+            wrapper.__name__ = func.__name__  # type: ignore[attr-defined]
+            wrapper.__doc__ = func.__doc__
+            wrapper.__module__ = func.__module__
+        except Exception:
+            pass
+        return wrapper
+
+    return decorator
+
+
+def ainject_method(container: Container):
+    """Decorator for async instance methods that need injection.
+
+    The resulting wrapper expects to be called as a bound method (i.e., with
+    ``self``). Dependencies declared with ``Depends`` are injected and passed
+    positionally after ``self``.
+    """
+
+    def decorator(func: Callable[..., Awaitable[R]]) -> Callable[[Any], Awaitable[R]]:
+        if not inspect.iscoroutinefunction(func):
+            raise TypeError("@ainject_method can only wrap async methods")
+        dep_keys = extract_dep_keys(func)
+        plan = container._build_plan(dep_keys, allow_async=True)
+        plan_epoch = container._epoch
+
+        async def wrapper(self: Any) -> R:
+            nonlocal plan, plan_epoch
+            if container._epoch != plan_epoch:
+                plan = container._build_plan(dep_keys, allow_async=True)
+                plan_epoch = container._epoch
+            computed = await container._run_plan_async(plan)
+            values = [computed[k] for k in dep_keys]
+            return await func(self, *values)  # type: ignore[misc]
 
         try:
             wrapper.__name__ = func.__name__  # type: ignore[attr-defined]

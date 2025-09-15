@@ -28,11 +28,13 @@ async def main():
     # Run two tasks concurrently; each should see its own value shared within task
     res1, res2 = await asyncio.gather(run_two_reads(), run_two_reads())
 
-    print({
-        "same_task_same": same_task_same,
-        "task1_same": res1,
-        "task2_same": res2,
-    })
+    print(
+        {
+            "same_task_same": same_task_same,
+            "task1_same": res1,
+            "task2_same": res2,
+        }
+    )
 
 
 if __name__ == "__main__":

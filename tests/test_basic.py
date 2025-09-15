@@ -21,4 +21,3 @@ def test_basic_sync():
     # Override get_b
     with c.override(get_b, lambda: 42, singleton=True):
         assert handler() == 42
-

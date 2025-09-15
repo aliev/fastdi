@@ -37,7 +37,7 @@ Tips for more consistent numbers:
 
 ## Current results
 
-- Machine: Apple M1
+- Machine: Apple M4 Pro
 - Python: 3.11 (uv venv)
 - Calls: 50,000
 - Scenario: sum of two dependencies via function injection
@@ -46,10 +46,10 @@ Tips for more consistent numbers:
 ```
 | library                              |   calls |   total_ms |   per_call_us |
 |--------------------------------------|---------|------------|---------------|
-| fastdi                               |   50000 |      48.99 |          0.98 |
-| fast-depends                         |   50000 |     216.52 |          4.33 |
-| dependency-injector (provider)       |   50000 |      12.10 |          0.24 |
-| dependency-injector (wired function) |   50000 |      24.22 |          0.48 |
+| fastdi                               |   50000 |      55.75 |          1.12 |
+| fast-depends                         |   50000 |     224.83 |          4.50 |
+| dependency-injector (provider)       |   50000 |      12.69 |          0.25 |
+| dependency-injector (wired function) |   50000 |      25.23 |          0.50 |
 ```
 
 Notes:
@@ -83,3 +83,4 @@ We plan to add:
 Planned:
 - Add more scenarios (deep chains, singletons, async).
 - Provide wired function-injection benchmark for `dependency-injector`.
+  On tiny graphs, the dominant cost is вызов Python‑провайдеров; на больших графах с hit’ами синглтонов и батч‑резолвом Rust‑исполнитель даёт преимущества.

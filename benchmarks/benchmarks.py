@@ -29,6 +29,8 @@ def bench_fastdi_simple(n: int) -> float:
     return dt
 
 
+
+
 def bench_fast_depends_simple(n: int) -> float:
     from fast_depends import inject as fd_inject
     from fast_depends.dependencies import Depends

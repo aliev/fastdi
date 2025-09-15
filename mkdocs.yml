@@ -4,6 +4,7 @@ nav:
   - Architecture: architecture.md
   - Benchmarks: benchmarks.md
   - Guides:
+      - Overview: guides/index.md
       - Concepts: guides/concepts.md
       - Quick Start: guides/quickstart.md
       - Hooks: guides/hooks.md

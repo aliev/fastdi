@@ -7,6 +7,15 @@ This module re-exports the main classes and decorators for convenience:
 
 from .types import Depends, make_key
 from .container import Container
-from .decorators import provide, inject, ainject
+from .decorators import provide, inject, ainject, inject_method, ainject_method
 
-__all__ = ["Container", "Depends", "provide", "inject", "ainject", "make_key"]
+__all__ = [
+    "Container",
+    "Depends",
+    "provide",
+    "inject",
+    "ainject",
+    "inject_method",
+    "ainject_method",
+    "make_key",
+]
