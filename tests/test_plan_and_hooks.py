@@ -1,4 +1,5 @@
 import asyncio
+from typing import Annotated
 import pytest
 
 from fastdi import Container, Depends, provide, inject, ainject
@@ -8,18 +9,18 @@ def test_cycle_detected_at_decoration_sync():
     c = Container()
 
     @provide(c, key="a")
-    def a(b=Depends("b")):
+    def a(b: Annotated[int, Depends("b")]):
         return 1
 
     @provide(c, key="b")
-    def b(a_=Depends("a")):
+    def b(a_: Annotated[int, Depends("a")]):
         return 2
 
     # Decoration should raise due to cycle
     with pytest.raises(RuntimeError):
 
         @inject(c)
-        def h(x=Depends("a")):
+        def h(x: Annotated[int, Depends("a")]):
             return x
 
 
@@ -36,17 +37,17 @@ async def test_hooks_and_topo_async():
         return 1
 
     @provide(c)
-    async def mid(x=Depends(leaf)):
+    async def mid(x: Annotated[int, Depends(leaf)]):
         await asyncio.sleep(0)
         return x + 2
 
     @provide(c, singleton=True)
-    async def top(y=Depends(mid)):
+    async def top(y: Annotated[int, Depends(mid)]):
         await asyncio.sleep(0)
         return y + 3
 
     @ainject(c)
-    async def handler(v=Depends(top)):
+    async def handler(v: Annotated[int, Depends(top)]):
         return v
 
     v1 = await handler()

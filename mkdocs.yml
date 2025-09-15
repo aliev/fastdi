@@ -1,4 +1,15 @@
 site_name: FastDI
+theme:
+  name: material
+  palette:
+    - scheme: default
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
 nav:
   - Home: index.md
   - Architecture: architecture.md
@@ -20,8 +31,6 @@ plugins:
           options:
             docstring_style: google
             show_source: false
-theme:
-  name: material
 markdown_extensions:
   - admonition
   - toc:

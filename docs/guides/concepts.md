@@ -5,6 +5,7 @@ This page explains the core concepts and attributes in FastDI.
 ## Container
 
 `Container` is the central registry and runtime:
+
 - Stores providers (factories) and layered overrides.
 - Manages scopes: `transient`, `singleton` (Rust-level cache), and `request` (per-async-task cache).
 - Exposes sync resolution (Rust) and async resolution (Python).
@@ -13,7 +14,7 @@ This page explains the core concepts and attributes in FastDI.
 
 Create one container and pass it to decorators:
 
-```
+```python
 from fastdi import Container
 c = Container()
 ```
@@ -21,10 +22,11 @@ c = Container()
 ## Depends
 
 `Depends(target)` marks a function parameter as a dependency.
+
 - `target` can be a callable (provider) or a string key (e.g., "db").
 - Use it in either default value or `typing.Annotated[Type, Depends(...)]` to keep type checkers happy.
 
-```
+```python
 from typing import Annotated
 from fastdi import Depends
 
@@ -71,13 +73,13 @@ Priority: if `singleton=True` is set, it overrides `scope` and enforces singleto
 ## inject
 
 `@inject(container)` wraps a sync function for dependency injection.
+
 - Compiles and validates a plan once and re-validates when the container changes.
 - Executes via the Rust plan executor (topologically, without recursion).
 - Fails fast if any provider in the graph is async (use `@ainject` instead).
 - The resulting wrapper takes no arguments; all parameters marked with `Depends` are injected.
- 
 
-```
+```python
 @inject(c)
 def handler(svc: Annotated[Service, Depends(get_service)]):
     return svc.ping()
@@ -92,7 +94,7 @@ handler()  # no args
 - Supports `request` scope and emits hook events.
 - The resulting wrapper is an async callable with no arguments.
 
-```
+```python
 @ainject(c)
 async def handler(n: Annotated[int, Depends(get_number)]):
     return n + 1
@@ -112,7 +114,7 @@ await handler()
 - The replacement provider can be sync or async and may have a different dependency shape.
 - Bumps the container epoch on enter and exit so injectors rebuild plans as needed.
 
-```
+```python
 with c.override(get_service, lambda: FakeService(), singleton=True):
     assert handler().ok
 ```

@@ -1,4 +1,5 @@
 import asyncio
+from typing import Annotated
 import pytest
 
 from fastdi import Container, Depends, provide, ainject
@@ -13,15 +14,15 @@ async def test_plan_rebuild_on_override_changes_graph():
         return 1
 
     @provide(c)
-    async def mid(x=Depends(leaf)):
+    async def mid(x: Annotated[int, Depends(leaf)]):
         return x + 2
 
     @provide(c)
-    async def top(y=Depends(mid)):
+    async def top(y: Annotated[int, Depends(mid)]):
         return y + 3
 
     @ainject(c)
-    async def handler(v=Depends(top)):
+    async def handler(v: Annotated[int, Depends(top)]):
         return v
 
     # Initial graph: leaf(1) -> mid(3) -> top(6)

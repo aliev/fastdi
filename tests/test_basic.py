@@ -1,3 +1,4 @@
+from typing import Annotated
 from fastdi import Container, Depends, provide, inject
 
 
@@ -9,11 +10,11 @@ def test_basic_sync():
         return {"a": 1}
 
     @provide(c)
-    def get_b(a=Depends(get_a)):
+    def get_b(a: Annotated[dict, Depends(get_a)]):
         return a["a"] + 1
 
     @inject(c)
-    def handler(b=Depends(get_b)):
+    def handler(b: Annotated[int, Depends(get_b)]):
         return b
 
     assert handler() == 2

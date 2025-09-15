@@ -3,7 +3,7 @@ from typing import Annotated
 from fastdi import Container, Depends, provide, inject
 
 
-def test_annotated_in_default():
+def test_depends_annotated_only():
     c = Container()
 
     class Service:
@@ -18,7 +18,7 @@ def test_annotated_in_default():
         return Service(7)
 
     @inject(c)
-    def handler(service=Annotated[Service, Depends(get_service)]):
+    def handler(service: Annotated[Service, Depends(get_service)]):
         return service.ping()
 
     assert handler() == 7

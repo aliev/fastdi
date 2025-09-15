@@ -91,10 +91,8 @@ class Depends:
 def extract_dep_keys(func: Callable[..., Any]) -> List[Key]:
     """Extract dependency keys from a callable's parameters.
 
-    Supports three forms:
-    - Default Depends: ``param = Depends(callable)``
-    - Default Annotated: ``param = Annotated[T, Depends(callable)]``
-    - Annotation Annotated: ``param: Annotated[T, Depends(callable)]``
+    Supported form:
+    - Annotated in annotation: ``param: Annotated[T, Depends(callable_or_key)]``
     """
     sig = inspect.signature(func)
     out: List[Key] = []
@@ -108,14 +106,6 @@ def extract_dep_keys(func: Callable[..., Any]) -> List[Key]:
         return None
 
     for p in sig.parameters.values():
-        if isinstance(p.default, Depends):
-            out.append(p.default.key)
-            continue
-        if p.default is not inspect._empty:
-            k = _from_annotated(p.default)
-            if k is not None:
-                out.append(k)
-                continue
         if p.annotation is not inspect._empty:
             k = _from_annotated(p.annotation)
             if k is not None:

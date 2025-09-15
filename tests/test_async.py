@@ -20,7 +20,7 @@ async def test_async_inject_and_request_scope():
         return x + 2
 
     @ainject(c)
-    async def handler(v=Depends(inc)):
+    async def handler(v: Annotated[int, Depends(inc)]):
         return v
 
     assert await handler() == 42
@@ -32,7 +32,7 @@ async def test_async_inject_and_request_scope():
         return object()
 
     @ainject(c)
-    async def pair(a=Depends(token), b=Depends(token)):
+    async def pair(a: Annotated[object, Depends(token)], b: Annotated[object, Depends(token)]):
         return a, b
 
     a, b = await pair()
