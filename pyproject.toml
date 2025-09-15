@@ -26,3 +26,15 @@ dependencies = []
 bindings = "pyo3"
 # Expose the Rust module as a top-level to avoid import shadowing
 module-name = "_fastdi_core"
+include = ["_fastdi_core.pyi", "fastdi/py.typed"]
+
+[dependency-groups]
+dev = [
+    "maturin>=1.9.4",
+    "mkdocs>=1.6.1",
+    "mkdocs-material>=9.6.20",
+    "mkdocstrings>=0.26.1",
+    "mkdocstrings-python>=1.11.1",
+    "pytest>=8.3.5",
+    "pytest-asyncio>=0.24.0",
+]

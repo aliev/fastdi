@@ -1,0 +1,26 @@
+site_name: FastDI
+nav:
+  - Home: index.md
+  - Architecture: architecture.md
+  - API:
+      - Container: reference/container.md
+      - Decorators: reference/decorators.md
+      - Types: reference/types.md
+plugins:
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            docstring_style: google
+            show_source: false
+theme:
+  name: material
+markdown_extensions:
+  - admonition
+  - toc:
+      permalink: true
+  - pymdownx.superfences
+  - pymdownx.details
+  - attr_list
+extra_javascript:
+  - javascripts/mermaid-init.js

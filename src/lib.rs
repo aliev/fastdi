@@ -124,8 +124,9 @@ impl ContainerInner {
         }
 
         // Call provider
-        let arg_tuple = PyTuple::new(py, args.iter().map(|a| a.as_ref(py)));
-        let produced = callable.call1(py, arg_tuple)?;
+        let bound_args: Vec<_> = args.iter().map(|a| a.bind(py)).collect();
+        let arg_tuple = PyTuple::new_bound(py, &bound_args);
+        let produced = callable.call1(py, &arg_tuple)?;
         let produced_owned: Py<PyAny> = produced.into();
 
         // Store in cache if singleton
@@ -150,6 +151,161 @@ impl ContainerInner {
 
         seen.remove(key);
         Ok(produced_owned)
+    }
+
+    fn get_provider_meta(&mut self, key: &str) -> Option<(Py<PyAny>, ProviderMeta)> {
+        // search overrides topmost first
+        for layer in self.overrides.iter_mut().rev() {
+            if let Some(p) = layer.get_mut(key) {
+                return Some((p.callable.clone(), p.meta.clone()));
+            }
+        }
+        if let Some(p) = self.providers.get_mut(key) {
+            return Some((p.callable.clone(), p.meta.clone()));
+        }
+        None
+    }
+
+    fn compile_order(&mut self, py: Python<'_>, roots: &[String]) -> PyResult<Vec<String>> {
+        // DFS for topological order
+        let mut state: HashMap<String, u8> = HashMap::new();
+        let mut order: Vec<String> = Vec::new();
+
+        fn visit(
+            me: &mut ContainerInner,
+            py: Python<'_>,
+            k: &str,
+            state: &mut HashMap<String, u8>,
+            order: &mut Vec<String>,
+        ) -> PyResult<()> {
+            match state.get(k).copied() {
+                Some(1) => {
+                    return Err(PyRuntimeError::new_err(format!(
+                        "Dependency cycle detected at key: {}",
+                        k
+                    )))
+                }
+                Some(2) => return Ok(()),
+                _ => {}
+            }
+            state.insert(k.to_string(), 1);
+            let (callable, meta) = me
+                .get_provider_meta(k)
+                .ok_or_else(|| PyKeyError::new_err(format!("No provider registered for key: {}", k)))?;
+            if meta.is_async {
+                return Err(PyRuntimeError::new_err(format!(
+                    "Provider for key '{}' is async and requires async resolution",
+                    k
+                )));
+            }
+            for dep in &meta.dep_keys {
+                visit(me, py, dep, state, order)?;
+            }
+            state.insert(k.to_string(), 2);
+            order.push(k.to_string());
+            Ok(())
+        }
+
+        for r in roots {
+            visit(self, py, r, &mut state, &mut order)?;
+        }
+        Ok(order)
+    }
+
+    fn execute_order(
+        &mut self,
+        py: Python<'_>,
+        order: &[String],
+    ) -> PyResult<HashMap<String, Py<PyAny>>> {
+        let mut computed: HashMap<String, Py<PyAny>> = HashMap::new();
+        for key in order {
+            // Check singleton caches first
+            // Determine provider location and metadata again (may have changed)
+            // Also capture deps for current key
+            let mut provider_loc_is_override = false;
+            let mut deps: Vec<String> = Vec::new();
+            let mut is_singleton = false;
+            let mut callable: Option<Py<PyAny>> = None;
+
+            // check overrides
+            for layer in self.overrides.iter_mut().rev() {
+                if let Some(p) = layer.get_mut(key.as_str()) {
+                    if p.meta.singleton {
+                        if let Some(cached) = p.cache.clone() {
+                            computed.insert(key.clone(), cached);
+                            callable = None;
+                            is_singleton = true; // irrelevant now
+                            deps.clear();
+                            break;
+                        }
+                    }
+                    callable = Some(p.callable.clone());
+                    deps = p.meta.dep_keys.clone();
+                    is_singleton = p.meta.singleton;
+                    provider_loc_is_override = true;
+                    break;
+                }
+            }
+            if computed.contains_key(key) {
+                continue;
+            }
+            if callable.is_none() {
+                if let Some(p) = self.providers.get_mut(key.as_str()) {
+                    if p.meta.singleton {
+                        if let Some(cached) = p.cache.clone() {
+                            computed.insert(key.clone(), cached);
+                            continue;
+                        }
+                    }
+                    callable = Some(p.callable.clone());
+                    deps = p.meta.dep_keys.clone();
+                    is_singleton = p.meta.singleton;
+                } else {
+                    return Err(PyKeyError::new_err(format!(
+                        "No provider registered for key: {}",
+                        key
+                    )));
+                }
+            }
+
+            // build args from computed deps
+            let mut args_vec: Vec<Py<PyAny>> = Vec::with_capacity(deps.len());
+            for d in &deps {
+                if let Some(v) = computed.get(d) {
+                    args_vec.push(v.clone());
+                } else {
+                    // Should not happen if order includes deps first
+                    let mut seen = HashSet::new();
+                    let v = self.resolve_key(py, d, &mut seen)?;
+                    args_vec.push(v);
+                }
+            }
+            let bound_args: Vec<_> = args_vec.iter().map(|a| a.bind(py)).collect();
+            let arg_tuple = PyTuple::new_bound(py, &bound_args);
+            let produced = callable.unwrap().call1(py, &arg_tuple)?;
+            let produced_owned: Py<PyAny> = produced.into();
+
+            // cache if singleton
+            if is_singleton {
+                if provider_loc_is_override {
+                    for layer in self.overrides.iter_mut().rev() {
+                        if let Some(p) = layer.get_mut(key.as_str()) {
+                            if p.meta.singleton {
+                                p.cache = Some(produced_owned.clone());
+                                break;
+                            }
+                        }
+                    }
+                } else if let Some(p) = self.providers.get_mut(key.as_str()) {
+                    if p.meta.singleton {
+                        p.cache = Some(produced_owned.clone());
+                    }
+                }
+            }
+
+            computed.insert(key.clone(), produced_owned);
+        }
+        Ok(computed)
     }
 }
 
@@ -188,6 +344,24 @@ impl Container {
     fn resolve_many(&self, py: Python<'_>, keys: Vec<String>) -> PyResult<Vec<Py<PyAny>>> {
         let mut g = self.inner.lock().unwrap();
         g.resolve_many(py, &keys)
+    }
+
+    fn resolve_many_plan(&self, py: Python<'_>, keys: Vec<String>) -> PyResult<Vec<Py<PyAny>>> {
+        let mut g = self.inner.lock().unwrap();
+        let order = g.compile_order(py, &keys)?;
+        let computed = g.execute_order(py, &order)?;
+        let mut out = Vec::with_capacity(keys.len());
+        for k in keys.iter() {
+            if let Some(v) = computed.get(k) {
+                out.push(v.clone());
+            } else {
+                return Err(PyRuntimeError::new_err(format!(
+                    "Internal error: key {} missing after plan execution",
+                    k
+                )));
+            }
+        }
+        Ok(out)
     }
 
     fn begin_override_layer(&self) {
@@ -281,7 +455,7 @@ impl Container {
 }
 
 #[pymodule]
-fn _fastdi_core(_py: Python, m: &PyModule) -> PyResult<()> {
+fn _fastdi_core(_py: Python, m: &pyo3::prelude::Bound<PyModule>) -> PyResult<()> {
     m.add_class::<Container>()?;
     Ok(())
 }

@@ -107,3 +107,42 @@ with container.override(get_service, lambda: FakeService()):
 ---
 
 **Резюме:** FastDI закрывает ограничения MVP: циклы, async, скоупы, overrides. Codex должен выдать полный код решения: Rust‑ядро (PyO3), Python‑обёртка, примеры использования, тесты, setup с `maturin`. Это позволит сразу получить готовую библиотеку DI с FastAPI‑подобным синтаксисом и максимальной производительностью.
+
+## Типизация и стиль аннотаций
+
+Рекомендуемый стиль для дружбы с Pyright/Mypy:
+
+- Аннотируйте возвращаемые типы провайдеров (Protocol или конкретный класс):
+
+```python
+class Service(Protocol):
+    def ping(self) -> dict: ...
+
+@provide(container)
+def get_service(...) -> Service:
+    ...
+```
+
+- В обработчиках используйте один из двух вариантов:
+
+1) Явный тип + `Depends` в значении по умолчанию (совместимо с FastAPI‑стилем):
+
+```python
+@inject(container)
+def handler(service: Service = Depends(get_service)):
+    return service.ping()
+```
+
+2) `Annotated[Type, Depends(...)]` в аннотации параметра:
+
+```python
+from typing import Annotated
+
+@inject(container)
+def handler(service: Annotated[Service, Depends(get_service)]):
+    return service.ping()
+```
+
+- Избегайте использования `Annotated[...]` как runtime‑значения по умолчанию (например, `param = Annotated[Type, Depends(...)]`). Статические анализаторы будут считать типом `Annotated`, что приведёт к ложным предупреждениям.
+
+Для async‑обработчиков используйте `@ainject` и те же правила аннотаций.
