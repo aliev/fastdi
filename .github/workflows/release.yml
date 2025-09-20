@@ -19,18 +19,15 @@ jobs:
           - platform: linux
             os: ubuntu-latest
             arch_env: CIBW_ARCHS_LINUX
-            archs: "x86_64 aarch64"
-            qemu: "1"
+            archs: "x86_64"
           - platform: macos
             os: macos-13
             arch_env: CIBW_ARCHS_MACOS
             archs: "universal2"
-            qemu: "0"
           - platform: windows
             os: windows-latest
             arch_env: CIBW_ARCHS_WINDOWS
             archs: "AMD64"
-            qemu: "0"
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -59,17 +56,14 @@ jobs:
           CIBW_BEFORE_ALL_LINUX: >
             curl https://sh.rustup.rs -sSf | sh -s -- -y --profile minimal &&
             source $HOME/.cargo/env &&
-            rustup target add x86_64-unknown-linux-gnu aarch64-unknown-linux-gnu
+            rustup target add x86_64-unknown-linux-gnu
           CIBW_ENVIRONMENT_LINUX: PATH="$HOME/.cargo/bin:$PATH"
           CIBW_BEFORE_ALL_MACOS: rustup target add aarch64-apple-darwin
           CIBW_ENVIRONMENT_MACOS: PATH="$HOME/.cargo/bin:$PATH" MACOSX_DEPLOYMENT_TARGET=10.13
           CIBW_BEFORE_ALL_WINDOWS: rustup target add x86_64-pc-windows-msvc
-          CIBW_ENVIRONMENT_WINDOWS: PATH=C:\\Users\\runneradmin\\.cargo\\bin;%PATH%
+          CIBW_ENVIRONMENT_WINDOWS: 'PATH=C:\\Users\\runneradmin\\.cargo\\bin;{env:PATH}'
           CIBW_MANYLINUX_X86_64: "manylinux_2_28"
-          CIBW_MANYLINUX_AARCH64: "manylinux_2_28"
           CIBW_MANYLINUX_PYPY_X86_64: "manylinux_2_28"
-          CIBW_MANYLINUX_PYPY_AARCH64: "manylinux_2_28"
-          CIBW_QEMU: ${{ matrix.qemu }}
           ${{ matrix.arch_env }}: ${{ matrix.archs }}
 
       - name: Upload wheels artifact
