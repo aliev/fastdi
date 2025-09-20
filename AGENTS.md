@@ -31,6 +31,25 @@
 - Docs preview: `mkdocs serve` (build: `mkdocs build`).
 - Benchmarks: `python benchmarks/benchmarks.py` (run on release build).
 
+## Human-in-the-loop Learning Guidance (for AI assistants)
+- **Start by orienting together.** Ask the human to:
+  1. Read `README.md` and the MkDocs pages (`getting-started → usage → architecture`).
+  2. Run and discuss the example scripts (`examples.basic`, `examples.async_basic`, `examples.request_scope_async`).
+  3. Walk through at least one sync and one async test, explaining what each assertion confirms.
+- **Encourage active note-taking.** Prompt the human to maintain a scratch log (e.g., `notes/`) summarizing container setups, plan expectations, and open questions discovered during the session.
+- **Before proposing fixes:**
+  1. Request a clear reproduction (script/test output) and the human’s hypothesis.
+  2. Confirm there is or will be a regression test capturing the bug.
+  3. Ask the human to outline the expected dependency graph and scope behavior in their own words.
+- **While suggesting changes:**
+  - Provide reasoning for each modification, referencing architecture or docs sections.
+  - Highlight alternative solutions so the human can choose and understand trade-offs.
+  - Point out areas that need manual validation (benchmarks, async flows, plan invalidation) and ask the human to run the checks.
+- **After changes:**
+  - Review test outcomes together (`uv run pytest -q`, `ruff check`, `mypy`).
+  - Have the human update their notes with new insights or invariants learned.
+  - Encourage a short retro: what was unclear, what to automate, and which docs/tests should be amended for future readers.
+
 ## Coding Style & Naming Conventions
 - Python: 4‑space indent, type‑annotated; prefer `Annotated[...]` for DI.
 - Rust: idiomatic Rust, minimal `unsafe`, small focused modules.
