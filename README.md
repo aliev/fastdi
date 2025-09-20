@@ -2,6 +2,8 @@
 
 FastDI wraps a Rust core (PyO3) in a friendly Python API so you can wire services quickly without sacrificing performance. It supports sync and async providers, request-scoped caches, layered overrides, and observability hooks.
 
+Project homepage: https://aliev.me/fastdi
+
 ## Highlights
 
 - Rust-backed plan compilation with cycle detection

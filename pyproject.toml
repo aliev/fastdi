@@ -22,6 +22,9 @@ classifiers = [
 ]
 dependencies = []
 
+[project.urls]
+homepage = "https://github.com/aliev/fastdi"
+
 [tool.maturin]
 bindings = "pyo3"
 # Expose the Rust module as a top-level to avoid import shadowing
