@@ -5,6 +5,8 @@ Set up a development environment, register providers, and run your first calls w
 ## 1. Install Dependencies
 
 ```bash
+pip install fastdi-core
+# or set up a local dev environment:
 uv sync --dev
 uv run maturin develop -r -q
 ```

@@ -13,6 +13,8 @@ FastDI pairs a Rust core with a lightweight Python API to provide fast, explicit
 ## Quick Start
 
 ```bash
+pip install fastdi-core
+# or set up a local dev environment:
 uv sync --dev
 uv run maturin develop -r -q
 uv run python -m examples.basic

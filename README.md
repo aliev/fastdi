@@ -15,6 +15,8 @@ Project homepage: https://aliev.me/fastdi
 ## Quick Start
 
 ```bash
+pip install fastdi-core
+# or set up a dev env with uv
 uv venv .venv
 . .venv/bin/activate
 uv sync --dev
