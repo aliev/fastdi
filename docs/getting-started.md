@@ -2,6 +2,8 @@
 
 Set up a development environment, register providers, and run your first calls with FastDI.
 
+> **Prerequisites:** Python 3.9+ and a stable Rust toolchain.
+
 ## 1. Install Dependencies
 
 ```bash

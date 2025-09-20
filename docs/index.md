@@ -10,6 +10,8 @@ FastDI pairs a Rust core with a lightweight Python API to provide fast, explicit
 - Layered overrides to swap providers safely
 - Hooks that report timings and cache hits
 
+**Requirements**: Python 3.9+ and a stable Rust toolchain.
+
 ## Quick Start
 
 ```bash

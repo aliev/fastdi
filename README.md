@@ -12,6 +12,11 @@ Project homepage: https://aliev.me/fastdi
 - Overrides for tests and temporary wiring changes
 - Hooks that report provider timings and cache hits
 
+## Requirements
+
+- Python 3.9+
+- Rust toolchain (stable)
+
 ## Quick Start
 
 ```bash
