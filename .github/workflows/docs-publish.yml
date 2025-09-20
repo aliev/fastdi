@@ -1,0 +1,35 @@
+name: Docs
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v4
+
+      - name: Sync dev dependencies (uv)
+        run: |
+          uv sync --group dev --frozen
+
+      - name: Build documentation
+        run: uv run mkdocs build
+
+      - name: Upload site artifact
+        uses: actions/upload-artifact@v4
+        with:
+          path: site
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./site
+          force_orphan: true

@@ -1,0 +1,43 @@
+site_name: FastDI
+repo_url: https://github.com/aliev/fastdi
+theme:
+  name: material
+  palette:
+    - scheme: default
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+nav:
+  - Home: index.md
+  - Getting Started: getting-started.md
+  - Usage Guide: usage.md
+  - Observability: observability.md
+  - Performance: performance.md
+  - Architecture: architecture.md
+  - API:
+      - Container: reference/container.md
+      - Decorators: reference/decorators.md
+      - Types: reference/types.md
+plugins:
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            docstring_style: google
+            show_source: false
+markdown_extensions:
+  - admonition
+  - toc:
+      permalink: true
+  - pymdownx.superfences
+  - pymdownx.details
+  - attr_list
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format

@@ -1,0 +1,3 @@
+# Container
+
+::: fastdi.container
