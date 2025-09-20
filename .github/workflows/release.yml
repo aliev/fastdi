@@ -10,25 +10,24 @@ jobs:
   build-wheels:
     name: Build wheels (${{ matrix.platform }})
     runs-on: ${{ matrix.os }}
+    env:
+      UV_PYTHON: "3.11"
     strategy:
       fail-fast: false
       matrix:
         include:
           - platform: linux
             os: ubuntu-latest
-            python: "3.11"
             arch_env: CIBW_ARCHS_LINUX
             archs: "x86_64 aarch64"
             qemu: "1"
           - platform: macos
             os: macos-13
-            python: "3.11"
             arch_env: CIBW_ARCHS_MACOS
             archs: "universal2"
             qemu: "0"
           - platform: windows
             os: windows-latest
-            python: "3.11"
             arch_env: CIBW_ARCHS_WINDOWS
             archs: "AMD64"
             qemu: "0"
@@ -36,23 +35,36 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python }}
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Add rust targets (host)
+        if: ${{ matrix.platform == 'macos' }}
+        run: rustup target add aarch64-apple-darwin
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v1
+
+      - name: Install Python runtime
+        run: uv python install 3.11
 
       - name: Install build tooling
-        run: |
-          python -m pip install --upgrade pip
-          pip install cibuildwheel==2.19.1 maturin
+        run: uv tool install cibuildwheel==2.19.1
 
       - name: Build wheels
-        run: cibuildwheel --output-dir dist
+        run: uvx cibuildwheel --output-dir dist
         env:
           CIBW_BUILD: "cp38-* cp39-* cp310-* cp311-* cp312-*"
           CIBW_SKIP: "pp*-*"
-          CIBW_BUILD_FRONTEND: "maturin"
-          CIBW_MATURIN_ARGS: "--release"
+          CIBW_BEFORE_ALL_LINUX: >
+            curl https://sh.rustup.rs -sSf | sh -s -- -y --profile minimal &&
+            source $HOME/.cargo/env &&
+            rustup target add x86_64-unknown-linux-gnu aarch64-unknown-linux-gnu
+          CIBW_ENVIRONMENT_LINUX: PATH="$HOME/.cargo/bin:$PATH"
+          CIBW_BEFORE_ALL_MACOS: rustup target add aarch64-apple-darwin
+          CIBW_ENVIRONMENT_MACOS: PATH="$HOME/.cargo/bin:$PATH" MACOSX_DEPLOYMENT_TARGET=10.13
+          CIBW_BEFORE_ALL_WINDOWS: rustup target add x86_64-pc-windows-msvc
+          CIBW_ENVIRONMENT_WINDOWS: PATH=C:\\Users\\runneradmin\\.cargo\\bin;%PATH%
           CIBW_MANYLINUX_X86_64: "manylinux_2_28"
           CIBW_MANYLINUX_AARCH64: "manylinux_2_28"
           CIBW_MANYLINUX_PYPY_X86_64: "manylinux_2_28"
@@ -69,22 +81,23 @@ jobs:
   sdist:
     name: Build sdist
     runs-on: ubuntu-latest
+    env:
+      UV_PYTHON: "3.11"
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v1
 
-      - name: Install maturin
-        run: |
-          python -m pip install --upgrade pip
-          pip install maturin
+      - name: Install Python runtime
+        run: uv python install 3.11
+
+      - name: Install build tooling
+        run: uv tool install maturin
 
       - name: Build source distribution
-        run: maturin sdist --out dist
+        run: uvx maturin sdist --out dist
 
       - name: Upload sdist artifact
         uses: actions/upload-artifact@v4
