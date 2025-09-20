@@ -4,7 +4,7 @@ build-backend = "maturin"
 
 [project]
 name = "fastdi-core"
-version = "0.1.0"
+version = "0.1.1"
 description = "FastDI — Rust-powered Dependency Injection for Python"
 authors = [
     { name = "Ali Aliyev", email = "ali@aliev.me" },
@@ -29,7 +29,14 @@ homepage = "https://github.com/aliev/fastdi"
 bindings = "pyo3"
 # Expose the Rust module as a top-level to avoid import shadowing
 module-name = "_fastdi_core"
-include = ["_fastdi_core.pyi", "fastdi/py.typed"]
+include = [
+    "_fastdi_core.pyi",
+    "fastdi/__init__.py",
+    "fastdi/container.py",
+    "fastdi/decorators.py",
+    "fastdi/types.py",
+    "fastdi/py.typed",
+]
 
 [dependency-groups]
 dev = [

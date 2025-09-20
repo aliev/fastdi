@@ -1,6 +1,6 @@
 [package]
 name = "fastdi-core"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 
 [lib]
@@ -10,4 +10,3 @@ crate-type = ["cdylib"]
 [dependencies]
 pyo3 = { version = "0.21", features = ["extension-module"] }
 once_cell = "1"
-
