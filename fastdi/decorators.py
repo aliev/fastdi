@@ -7,7 +7,7 @@ they render well under MkDocs.
 from __future__ import annotations
 
 import inspect
-from typing import Any, Awaitable, Callable, List, Optional, TypeVar, ParamSpec
+from typing import Any, Awaitable, Callable, List, Optional, TypeVar, ParamSpec, Coroutine
 
 from .container import Container
 from .types import Key, Scope, extract_dep_keys, make_key
@@ -88,7 +88,7 @@ def ainject(container: Container):
     await the original function with injected values.
     """
 
-    def decorator(func: Callable[..., Awaitable[R]]) -> Callable[[], Awaitable[R]]:
+    def decorator(func: Callable[..., Awaitable[R]]) -> Callable[[], Coroutine[Any, Any, R]]:
         if not inspect.iscoroutinefunction(func):
             raise TypeError("@ainject can only wrap async functions")
         dep_keys = extract_dep_keys(func)
@@ -155,7 +155,7 @@ def ainject_method(container: Container):
     positionally after ``self``.
     """
 
-    def decorator(func: Callable[..., Awaitable[R]]) -> Callable[[Any], Awaitable[R]]:
+    def decorator(func: Callable[..., Awaitable[R]]) -> Callable[[Any], Coroutine[Any, Any, R]]:
         if not inspect.iscoroutinefunction(func):
             raise TypeError("@ainject_method can only wrap async methods")
         dep_keys = extract_dep_keys(func)
