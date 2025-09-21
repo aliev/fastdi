@@ -4,7 +4,7 @@ build-backend = "maturin"
 
 [project]
 name = "fastdi-core"
-version = "0.1.2"
+version = "0.1.3"
 description = "FastDI — Rust-powered Dependency Injection for Python"
 authors = [
     { name = "Ali Aliyev", email = "ali@aliev.me" },
