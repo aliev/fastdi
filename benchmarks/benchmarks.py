@@ -1,10 +1,12 @@
 import time
+
 from tabulate import tabulate
 
 
 def bench_fastdi_simple(n: int) -> float:
     from typing import Annotated
-    from fastdi import Container, provide, inject, Depends
+
+    from fastdi import Container, Depends, inject, provide
 
     c = Container()
 

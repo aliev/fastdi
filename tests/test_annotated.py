@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastdi import Container, Depends, provide, inject
+from fastdi import Container, Depends, inject, provide
 
 
 def test_depends_annotated_only():

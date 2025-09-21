@@ -6,24 +6,20 @@ dependency metadata from callables.
 
 from __future__ import annotations
 
+import inspect
+from collections.abc import Callable
 from typing import (
+    Annotated,
     Any,
-    Callable,
-    Dict,
-    List,
-    Optional,
-    Tuple,
     Protocol,
     get_args,
     get_origin,
-    Annotated,
 )
-import inspect
 
 # Public type aliases
 Key = str
 Scope = str  # one of: "transient", "request", "singleton"
-Hook = Callable[[str, Dict[str, Any]], None]
+Hook = Callable[[str, dict[str, Any]], None]
 
 
 class CoreContainerProto(Protocol):
@@ -38,11 +34,11 @@ class CoreContainerProto(Protocol):
         callable: Callable[..., Any],
         singleton: bool,
         is_async: bool,
-        dep_keys: List[str],
+        dep_keys: list[str],
     ) -> None: ...
     def resolve(self, key: str) -> Any: ...
-    def resolve_many(self, keys: List[str]) -> List[Any]: ...
-    def resolve_many_plan(self, keys: List[str]) -> List[Any]: ...
+    def resolve_many(self, keys: list[str]) -> list[Any]: ...
+    def resolve_many_plan(self, keys: list[str]) -> list[Any]: ...
     def begin_override_layer(self) -> None: ...
     def set_override(
         self,
@@ -50,11 +46,11 @@ class CoreContainerProto(Protocol):
         callable: Callable[..., Any],
         singleton: bool,
         is_async: bool,
-        dep_keys: List[str],
+        dep_keys: list[str],
     ) -> None: ...
     def end_override_layer(self) -> None: ...
-    def get_provider_info(self, key: str) -> Tuple[Callable[..., Any], bool, bool, List[str]]: ...
-    def get_cached(self, key: str) -> Optional[Any]: ...
+    def get_provider_info(self, key: str) -> tuple[Callable[..., Any], bool, bool, list[str]]: ...
+    def get_cached(self, key: str) -> Any | None: ...
     def set_cached(self, key: str, value: Any) -> None: ...
 
 
@@ -89,7 +85,7 @@ class Depends:
         return f"Depends({self.key})"
 
 
-def extract_dep_keys(func: Callable[..., Any]) -> List[Key]:
+def extract_dep_keys(func: Callable[..., Any]) -> list[Key]:
     """Extract dependency keys from a callable's parameters.
 
     Supported (and enforced) form:
@@ -98,9 +94,9 @@ def extract_dep_keys(func: Callable[..., Any]) -> List[Key]:
     The default-value style (``param=Depends(...)``) is not supported.
     """
     sig = inspect.signature(func)
-    out: List[Key] = []
+    out: list[Key] = []
 
-    def _from_annotated(obj: Any) -> Optional[Key]:
+    def _from_annotated(obj: Any) -> Key | None:
         org = get_origin(obj)
         if org is Annotated:
             for meta in get_args(obj)[1:]:

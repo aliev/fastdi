@@ -1,8 +1,8 @@
-import asyncio
 from typing import Annotated
+
 import pytest
 
-from fastdi import Container, Depends, provide, ainject
+from fastdi import Container, Depends, ainject, provide
 
 
 @pytest.mark.asyncio

@@ -1,6 +1,7 @@
 import asyncio
 from typing import Annotated
-from fastdi import Container, Depends, provide, ainject
+
+from fastdi import Container, Depends, ainject, provide
 
 
 async def main():

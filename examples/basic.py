@@ -1,5 +1,6 @@
 from typing import Annotated, Any, Protocol
-from fastdi import Container, Depends, provide, inject
+
+from fastdi import Container, Depends, inject, provide
 
 
 def main():

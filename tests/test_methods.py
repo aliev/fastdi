@@ -1,7 +1,7 @@
+import asyncio
 from typing import Annotated
 
-from fastdi import Container, Depends, provide, inject_method, ainject_method
-import asyncio
+from fastdi import Container, Depends, ainject_method, inject_method, provide
 
 
 def test_inject_method_sync():

@@ -1,8 +1,9 @@
 import asyncio
 from typing import Annotated
+
 import pytest
 
-from fastdi import Container, Depends, provide, inject, ainject
+from fastdi import Container, Depends, ainject, inject, provide
 
 
 def test_cycle_detected_at_decoration_sync():

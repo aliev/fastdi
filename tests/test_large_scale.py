@@ -1,9 +1,9 @@
 import os
 from typing import Annotated
+
 import pytest
 
-from fastdi import Container, Depends, provide, inject, ainject
-
+from fastdi import Container, Depends, ainject, inject, provide
 
 RUN_LARGE = os.getenv("FASTDI_RUN_LARGE", "0") == "1"
 SIZE = int(os.getenv("FASTDI_LARGE_N", "3000"))

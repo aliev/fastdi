@@ -7,11 +7,11 @@ they render well under MkDocs.
 from __future__ import annotations
 
 import inspect
-from typing import Any, Awaitable, Callable, Optional, TypeVar, ParamSpec, Coroutine
+from collections.abc import Awaitable, Callable, Coroutine
+from typing import Any, ParamSpec, TypeVar
 
 from .container import Container
 from .types import Key, Scope, extract_dep_keys, make_key
-
 
 P = ParamSpec("P")
 R = TypeVar("R")
@@ -21,8 +21,8 @@ def provide(
     container: Container,
     *,
     singleton: bool = False,
-    key: Optional[Key] = None,
-    scope: Optional[Scope] = None,
+    key: Key | None = None,
+    scope: Scope | None = None,
 ):
     """Register a function as a provider.
 
