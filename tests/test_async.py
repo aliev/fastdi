@@ -45,3 +45,26 @@ async def test_async_inject_and_request_scope():
 
     id1, id2 = await asyncio.gather(get_id(), get_id())
     assert id1 != id2  # different across tasks
+
+
+@pytest.mark.asyncio
+async def test_ainject_preserves_call_arguments():
+    c = Container()
+
+    @provide(c)
+    async def provide_value() -> int:
+        await asyncio.sleep(0)
+        return 5
+
+    @ainject(c)
+    async def endpoint(
+        width: int,
+        injected: Annotated[int, Depends(provide_value)],
+        height: int,
+    ) -> tuple[int, int, int]:
+        return width, height, injected
+
+    assert await endpoint(3, height=4) == (3, 4, 5)
+
+    # Explicit argument should bypass DI resolution for that parameter.
+    assert await endpoint(3, height=4, injected=9) == (3, 4, 9)

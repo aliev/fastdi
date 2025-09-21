@@ -8,10 +8,11 @@ from __future__ import annotations
 
 import inspect
 from collections.abc import Awaitable, Callable, Coroutine
+from functools import wraps
 from typing import Any, ParamSpec, TypeVar
 
 from .container import Container
-from .types import Key, Scope, extract_dep_keys, make_key
+from .types import Key, Scope, extract_dep_keys, extract_dep_params, make_key
 
 P = ParamSpec("P")
 R = TypeVar("R")
@@ -49,32 +50,39 @@ def inject(container: Container):
     """Decorator for sync call sites.
 
     Compiles and validates a plan at decoration time and executes the call via
-    the Rust core resolver. The resulting wrapper takes no arguments; it will
-    resolve dependencies and pass them positionally to the original function.
+    the Rust core resolver. The resulting wrapper preserves the original
+    signature, filling ``Annotated[..., Depends(...)]`` parameters when they
+    are not provided explicitly.
     """
 
-    def decorator(func: Callable[..., R]) -> Callable[[], R]:
-        dep_keys = extract_dep_keys(func)
+    def decorator(func: Callable[..., R]) -> Callable[..., R]:
+        dep_params = extract_dep_params(func)
+        dep_keys = [key for _, key in dep_params]
+        sig = inspect.signature(func)
         # compile/validate now and capture epoch
         plan = container._build_plan(dep_keys, allow_async=False)
         validated_epoch = container._epoch
 
-        def wrapper() -> R:
+        @wraps(func)
+        def wrapper(*args: Any, **kwargs: Any) -> R:
             nonlocal validated_epoch, plan
             # Re-validate on epoch change
             if container._epoch != validated_epoch:
                 plan = container._build_plan(dep_keys, allow_async=False)
                 validated_epoch = container._epoch
-            # Use Rust plan executor for sync path
-            values = list(container._core.resolve_many_plan(list(dep_keys)))
-            return func(*values)
 
-        try:
-            wrapper.__name__ = func.__name__
-            wrapper.__doc__ = func.__doc__
-            wrapper.__module__ = func.__module__
-        except Exception:
-            pass
+            if not dep_params:
+                return func(*args, **kwargs)
+
+            bound = sig.bind_partial(*args, **kwargs)
+            missing = [(name, key) for name, key in dep_params if name not in bound.arguments]
+            if missing:
+                keys_to_resolve = [key for _, key in missing]
+                resolved = container._core.resolve_many_plan(keys_to_resolve)
+                for (name, _), value in zip(missing, resolved):
+                    bound.arguments[name] = value
+            return func(*bound.args, **bound.kwargs)
+
         return wrapper
 
     return decorator
@@ -84,32 +92,38 @@ def ainject(container: Container):
     """Decorator for async call sites.
 
     Compiles a plan and executes it iteratively in topological order. The
-    resulting wrapper takes no arguments; it will resolve dependencies, then
-    await the original function with injected values.
+    resulting wrapper preserves the original signature, resolving
+    ``Annotated[..., Depends(...)]`` parameters when missing before awaiting
+    the original function.
     """
 
-    def decorator(func: Callable[..., Awaitable[R]]) -> Callable[[], Coroutine[Any, Any, R]]:
+    def decorator(func: Callable[..., Awaitable[R]]) -> Callable[..., Coroutine[Any, Any, R]]:
         if not inspect.iscoroutinefunction(func):
             raise TypeError("@ainject can only wrap async functions")
-        dep_keys = extract_dep_keys(func)
+        dep_params = extract_dep_params(func)
+        dep_keys = [key for _, key in dep_params]
+        sig = inspect.signature(func)
         plan = container._build_plan(dep_keys, allow_async=True)
         plan_epoch = container._epoch
 
-        async def wrapper() -> R:
+        @wraps(func)
+        async def wrapper(*args: Any, **kwargs: Any) -> R:
             nonlocal plan, plan_epoch
             if container._epoch != plan_epoch:
                 plan = container._build_plan(dep_keys, allow_async=True)
                 plan_epoch = container._epoch
-            computed = await container._run_plan_async(plan)
-            values = [computed[k] for k in dep_keys]
-            return await func(*values)
 
-        try:
-            wrapper.__name__ = func.__name__
-            wrapper.__doc__ = func.__doc__
-            wrapper.__module__ = func.__module__
-        except Exception:
-            pass
+            if not dep_params:
+                return await func(*args, **kwargs)
+
+            bound = sig.bind_partial(*args, **kwargs)
+            missing = [(name, key) for name, key in dep_params if name not in bound.arguments]
+            if missing:
+                computed = await container._run_plan_async(plan)
+                for name, key in missing:
+                    bound.arguments[name] = computed[key]
+            return await func(*bound.args, **bound.kwargs)
+
         return wrapper
 
     return decorator
@@ -123,25 +137,32 @@ def inject_method(container: Container):
     positionally after ``self``.
     """
 
-    def decorator(func: Callable[..., R]) -> Callable[[Any], R]:
-        dep_keys = extract_dep_keys(func)
+    def decorator(func: Callable[..., R]) -> Callable[..., R]:
+        dep_params = extract_dep_params(func)
+        dep_keys = [key for _, key in dep_params]
+        sig = inspect.signature(func)
         plan = container._build_plan(dep_keys, allow_async=False)
         validated_epoch = container._epoch
 
-        def wrapper(self: Any) -> R:
+        @wraps(func)
+        def wrapper(self: Any, *args: Any, **kwargs: Any) -> R:
             nonlocal plan, validated_epoch
             if container._epoch != validated_epoch:
                 plan = container._build_plan(dep_keys, allow_async=False)
                 validated_epoch = container._epoch
-            values = list(container._core.resolve_many_plan(list(dep_keys)))
-            return func(self, *values)
 
-        try:
-            wrapper.__name__ = func.__name__
-            wrapper.__doc__ = func.__doc__
-            wrapper.__module__ = func.__module__
-        except Exception:
-            pass
+            if not dep_params:
+                return func(self, *args, **kwargs)
+
+            bound = sig.bind_partial(self, *args, **kwargs)
+            missing = [(name, key) for name, key in dep_params if name not in bound.arguments]
+            if missing:
+                keys_to_resolve = [key for _, key in missing]
+                resolved = container._core.resolve_many_plan(keys_to_resolve)
+                for (name, _), value in zip(missing, resolved):
+                    bound.arguments[name] = value
+            return func(*bound.args, **bound.kwargs)
+
         return wrapper
 
     return decorator
@@ -155,28 +176,33 @@ def ainject_method(container: Container):
     positionally after ``self``.
     """
 
-    def decorator(func: Callable[..., Awaitable[R]]) -> Callable[[Any], Coroutine[Any, Any, R]]:
+    def decorator(func: Callable[..., Awaitable[R]]) -> Callable[..., Coroutine[Any, Any, R]]:
         if not inspect.iscoroutinefunction(func):
             raise TypeError("@ainject_method can only wrap async methods")
-        dep_keys = extract_dep_keys(func)
+        dep_params = extract_dep_params(func)
+        dep_keys = [key for _, key in dep_params]
+        sig = inspect.signature(func)
         plan = container._build_plan(dep_keys, allow_async=True)
         plan_epoch = container._epoch
 
-        async def wrapper(self: Any) -> R:
+        @wraps(func)
+        async def wrapper(self: Any, *args: Any, **kwargs: Any) -> R:
             nonlocal plan, plan_epoch
             if container._epoch != plan_epoch:
                 plan = container._build_plan(dep_keys, allow_async=True)
                 plan_epoch = container._epoch
-            computed = await container._run_plan_async(plan)
-            values = [computed[k] for k in dep_keys]
-            return await func(self, *values)
 
-        try:
-            wrapper.__name__ = func.__name__
-            wrapper.__doc__ = func.__doc__
-            wrapper.__module__ = func.__module__
-        except Exception:
-            pass
+            if not dep_params:
+                return await func(self, *args, **kwargs)
+
+            bound = sig.bind_partial(self, *args, **kwargs)
+            missing = [(name, key) for name, key in dep_params if name not in bound.arguments]
+            if missing:
+                computed = await container._run_plan_async(plan)
+                for name, key in missing:
+                    bound.arguments[name] = computed[key]
+            return await func(*bound.args, **bound.kwargs)
+
         return wrapper
 
     return decorator

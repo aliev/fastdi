@@ -8,13 +8,7 @@ from __future__ import annotations
 
 import inspect
 from collections.abc import Callable
-from typing import (
-    Annotated,
-    Any,
-    Protocol,
-    get_args,
-    get_origin,
-)
+from typing import Annotated, Any, Protocol, get_args, get_origin
 
 # Public type aliases
 Key = str
@@ -78,6 +72,8 @@ class Depends:
         def handler(svc: Annotated[Service, Depends(get_service)]): ...
     """
 
+    __slots__ = ("key",)
+
     def __init__(self, target: Any):
         self.key = make_key(target)
 
@@ -85,29 +81,32 @@ class Depends:
         return f"Depends({self.key})"
 
 
-def extract_dep_keys(func: Callable[..., Any]) -> list[Key]:
-    """Extract dependency keys from a callable's parameters.
+def _extract_dep_key(annotation: Any) -> Key | None:
+    """Return the dependency key encoded in an annotation, if present."""
 
-    Supported (and enforced) form:
-    - Annotated-only: ``param: Annotated[T, Depends(callable_or_key)]``
-
-    The default-value style (``param=Depends(...)``) is not supported.
-    """
-    sig = inspect.signature(func)
-    out: list[Key] = []
-
-    def _from_annotated(obj: Any) -> Key | None:
-        org = get_origin(obj)
-        if org is Annotated:
-            for meta in get_args(obj)[1:]:
-                if isinstance(meta, Depends):
-                    return meta.key
+    if annotation is inspect._empty:
         return None
+    origin = get_origin(annotation)
+    if origin is Annotated:
+        for meta in get_args(annotation)[1:]:
+            if isinstance(meta, Depends):
+                return meta.key
+    return None
 
-    for p in sig.parameters.values():
-        if p.annotation is not inspect._empty:
-            k = _from_annotated(p.annotation)
-            if k is not None:
-                out.append(k)
 
+def extract_dep_params(func: Callable[..., Any]) -> list[tuple[str, Key]]:
+    """Return ``(parameter_name, dependency_key)`` pairs for ``func``."""
+
+    sig = inspect.signature(func)
+    out: list[tuple[str, Key]] = []
+    for param in sig.parameters.values():
+        key = _extract_dep_key(param.annotation)
+        if key is not None:
+            out.append((param.name, key))
     return out
+
+
+def extract_dep_keys(func: Callable[..., Any]) -> list[Key]:
+    """Extract dependency keys from a callable's parameters."""
+
+    return [key for _, key in extract_dep_params(func)]

@@ -25,6 +25,27 @@ def test_cycle_detected_at_decoration_sync():
             return x
 
 
+def test_inject_preserves_call_arguments():
+    c = Container()
+
+    @provide(c)
+    def give() -> int:
+        return 7
+
+    @inject(c)
+    def handler(
+        left: int,
+        injected: Annotated[int, Depends(give)],
+        right: int,
+    ) -> int:
+        return left + injected + right
+
+    assert handler(1, right=2) == 10
+
+    # Passing an explicit value should skip DI resolution for that argument.
+    assert handler(1, injected=100, right=2) == 103
+
+
 @pytest.mark.asyncio
 async def test_hooks_and_topo_async():
     c = Container()
