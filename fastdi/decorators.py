@@ -7,7 +7,7 @@ they render well under MkDocs.
 from __future__ import annotations
 
 import inspect
-from typing import Any, Awaitable, Callable, List, Optional, TypeVar, ParamSpec, Coroutine
+from typing import Any, Awaitable, Callable, Optional, TypeVar, ParamSpec, Coroutine
 
 from .container import Container
 from .types import Key, Scope, extract_dep_keys, make_key
@@ -67,10 +67,10 @@ def inject(container: Container):
                 validated_epoch = container._epoch
             # Use Rust plan executor for sync path
             values = list(container._core.resolve_many_plan(list(dep_keys)))
-            return func(*values)  # type: ignore[misc]
+            return func(*values)
 
         try:
-            wrapper.__name__ = func.__name__  # type: ignore[attr-defined]
+            wrapper.__name__ = func.__name__
             wrapper.__doc__ = func.__doc__
             wrapper.__module__ = func.__module__
         except Exception:
@@ -102,10 +102,10 @@ def ainject(container: Container):
                 plan_epoch = container._epoch
             computed = await container._run_plan_async(plan)
             values = [computed[k] for k in dep_keys]
-            return await func(*values)  # type: ignore[misc]
+            return await func(*values)
 
         try:
-            wrapper.__name__ = func.__name__  # type: ignore[attr-defined]
+            wrapper.__name__ = func.__name__
             wrapper.__doc__ = func.__doc__
             wrapper.__module__ = func.__module__
         except Exception:
@@ -134,10 +134,10 @@ def inject_method(container: Container):
                 plan = container._build_plan(dep_keys, allow_async=False)
                 validated_epoch = container._epoch
             values = list(container._core.resolve_many_plan(list(dep_keys)))
-            return func(self, *values)  # type: ignore[misc]
+            return func(self, *values)
 
         try:
-            wrapper.__name__ = func.__name__  # type: ignore[attr-defined]
+            wrapper.__name__ = func.__name__
             wrapper.__doc__ = func.__doc__
             wrapper.__module__ = func.__module__
         except Exception:
@@ -169,10 +169,10 @@ def ainject_method(container: Container):
                 plan_epoch = container._epoch
             computed = await container._run_plan_async(plan)
             values = [computed[k] for k in dep_keys]
-            return await func(self, *values)  # type: ignore[misc]
+            return await func(self, *values)
 
         try:
-            wrapper.__name__ = func.__name__  # type: ignore[attr-defined]
+            wrapper.__name__ = func.__name__
             wrapper.__doc__ = func.__doc__
             wrapper.__module__ = func.__module__
         except Exception:
