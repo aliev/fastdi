@@ -1,0 +1,1122 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="../performance/">
+      
+      
+        <link rel="next" href="../reference/container/">
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.20">
+    
+    
+      
+        <title>Architecture - FastDI</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.e53b48f4.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#architecture" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="FastDI" class="md-header__button md-logo" aria-label="FastDI" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            FastDI
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Architecture
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/aliev/fastdi" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="FastDI" class="md-nav__button md-logo" aria-label="FastDI" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    FastDI
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/aliev/fastdi" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Getting Started
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../usage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Usage Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../observability/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Observability
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../performance/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Performance
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Architecture
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    Architecture
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      Overview
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#rust-core" class="md-nav__link">
+    <span class="md-ellipsis">
+      Rust Core
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Rust Core">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#resolution-sync" class="md-nav__link">
+    <span class="md-ellipsis">
+      Resolution (sync)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#plan-executor-sync" class="md-nav__link">
+    <span class="md-ellipsis">
+      Plan executor (sync)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#overrides" class="md-nav__link">
+    <span class="md-ellipsis">
+      Overrides
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dependency-graph-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      Dependency Graph Examples
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#python-layers" class="md-nav__link">
+    <span class="md-ellipsis">
+      Python Layers
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Python Layers">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#types-and-helpers-fastditypes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Types and helpers (fastdi.types)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#container-fastdicontainer" class="md-nav__link">
+    <span class="md-ellipsis">
+      Container (fastdi.container)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#decorators-fastdidecorators" class="md-nav__link">
+    <span class="md-ellipsis">
+      Decorators (fastdi.decorators)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#typing-and-tooling" class="md-nav__link">
+    <span class="md-ellipsis">
+      Typing and Tooling
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#observability" class="md-nav__link">
+    <span class="md-ellipsis">
+      Observability
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#error-handling" class="md-nav__link">
+    <span class="md-ellipsis">
+      Error Handling
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#packaging-and-local-dev" class="md-nav__link">
+    <span class="md-ellipsis">
+      Packaging and Local Dev
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Documentation
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#roadmap" class="md-nav__link">
+    <span class="md-ellipsis">
+      Roadmap
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    API
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            API
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/container/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Container
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/decorators/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Decorators
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/types/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Types
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      Overview
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#rust-core" class="md-nav__link">
+    <span class="md-ellipsis">
+      Rust Core
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Rust Core">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#resolution-sync" class="md-nav__link">
+    <span class="md-ellipsis">
+      Resolution (sync)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#plan-executor-sync" class="md-nav__link">
+    <span class="md-ellipsis">
+      Plan executor (sync)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#overrides" class="md-nav__link">
+    <span class="md-ellipsis">
+      Overrides
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dependency-graph-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      Dependency Graph Examples
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#python-layers" class="md-nav__link">
+    <span class="md-ellipsis">
+      Python Layers
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Python Layers">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#types-and-helpers-fastditypes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Types and helpers (fastdi.types)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#container-fastdicontainer" class="md-nav__link">
+    <span class="md-ellipsis">
+      Container (fastdi.container)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#decorators-fastdidecorators" class="md-nav__link">
+    <span class="md-ellipsis">
+      Decorators (fastdi.decorators)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#typing-and-tooling" class="md-nav__link">
+    <span class="md-ellipsis">
+      Typing and Tooling
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#observability" class="md-nav__link">
+    <span class="md-ellipsis">
+      Observability
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#error-handling" class="md-nav__link">
+    <span class="md-ellipsis">
+      Error Handling
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#packaging-and-local-dev" class="md-nav__link">
+    <span class="md-ellipsis">
+      Packaging and Local Dev
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Documentation
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#roadmap" class="md-nav__link">
+    <span class="md-ellipsis">
+      Roadmap
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="architecture">Architecture<a class="headerlink" href="#architecture" title="Permanent link">&para;</a></h1>
+<p>This document explains FastDI’s architecture: the Rust core, the Python API
+layers, dependency planning, scopes, overrides, observability, and typing.</p>
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Core: Rust crate built with PyO3 provides a high‑performance provider store,
+  resolution, overrides, and a synchronous plan executor.</li>
+<li>Python: thin, readable layers on top of the core provide ergonomics:</li>
+<li><code>fastdi.types</code>: type aliases, <code>Depends</code>, key utilities, dependency parsing (Annotated-only).</li>
+<li><code>fastdi.container</code>: <code>Container</code> with scopes, hooks, async resolver,
+    topological planning, and epoch‑based plan invalidation.</li>
+<li><code>fastdi.decorators</code>: <code>provide</code>, <code>inject</code>, <code>ainject</code> decorators for easy use.</li>
+<li>Packaging: maturin builds a CPython extension; <code>_fastdi_core.pyi</code> and
+  <code>fastdi/py.typed</code> ship editor/type checker hints.</li>
+</ul>
+<h2 id="rust-core">Rust Core<a class="headerlink" href="#rust-core" title="Permanent link">&para;</a></h2>
+<p>The Rust library (<code>src/lib.rs</code>) exposes a <code>Container</code> class to Python via PyO3.
+It encapsulates two main data sets:</p>
+<ul>
+<li><code>providers: HashMap&lt;String, Provider&gt;</code> — base registration table</li>
+<li><code>overrides: Vec&lt;HashMap&lt;String, Provider&gt;&gt;</code> — layered overrides (stack)</li>
+</ul>
+<p>Each <code>Provider</code> holds:</p>
+<ul>
+<li><code>callable: Py&lt;PyAny&gt;</code> — the Python factory function</li>
+<li><code>meta: ProviderMeta</code> — flags and static metadata</li>
+<li><code>singleton: bool</code> — whether to cache the produced value globally in Rust</li>
+<li><code>is_async: bool</code> — async providers are rejected by sync paths</li>
+<li><code>dep_keys: Vec&lt;String&gt;</code> — dependency keys</li>
+<li><code>cache: Option&lt;Py&lt;PyAny&gt;&gt;</code> — singleton cache (if <code>singleton=True</code>)</li>
+</ul>
+<h3 id="resolution-sync">Resolution (sync)<a class="headerlink" href="#resolution-sync" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Recursive resolver: <code>resolve_key</code> walks dependencies with a DFS, detects
+  cycles using a <code>seen</code> set, and calls providers, caching singletons when set.</li>
+<li>Batch resolve: <code>resolve_many</code> simply iterates over keys and calls the above.</li>
+</ul>
+<h3 id="plan-executor-sync">Plan executor (sync)<a class="headerlink" href="#plan-executor-sync" title="Permanent link">&para;</a></h3>
+<p>For faster sync paths without recursion:</p>
+<ul>
+<li><code>compile_order(roots)</code>: builds a topological order via DFS, rejects async
+  providers and cycles, and records dependencies per node.</li>
+<li><code>execute_order(order)</code>: iteratively computes each node once, looking up
+  already computed dependencies, reusing singleton caches, then returns the
+  computed map.</li>
+<li>PyO3 API: <code>resolve_many_plan(keys)</code> compiles + executes and returns values in
+  the order of input keys.</li>
+</ul>
+<p>Sequence for sync injection:</p>
+<pre class="mermaid"><code>sequenceDiagram
+    participant User as @inject wrapper
+    participant Py as Container (Python)
+    participant Rs as Container (Rust)
+    User-&gt;&gt;Py: call handler()
+    Py-&gt;&gt;Py: validate plan epoch
+    Py-&gt;&gt;Rs: resolve_many_plan(dep_keys)
+    Rs-&gt;&gt;Rs: compile_order(dep_keys)
+    Rs-&gt;&gt;Rs: execute_order(order)
+    Rs-&gt;&gt;Py: values
+    Py-&gt;&gt;User: call original func(values)</code></pre>
+<h2 id="overrides">Overrides<a class="headerlink" href="#overrides" title="Permanent link">&para;</a></h2>
+<p>Overrides use a stack of hash maps. Lookups search the latest override layer
+first, then fall back to base providers. Singleton caches are kept with the
+provider entry (override or base), ensuring isolation across layers.</p>
+<h2 id="dependency-graph-examples">Dependency Graph Examples<a class="headerlink" href="#dependency-graph-examples" title="Permanent link">&para;</a></h2>
+<p>Typical acyclic graph (valid):</p>
+<pre class="mermaid"><code>flowchart TD
+    A[get_db] --&gt; B[get_service]
+    B --&gt; H[handler]
+    A --&gt; H</code></pre>
+<p>Graph with a cycle (invalid):</p>
+<pre class="mermaid"><code>flowchart TD
+    X[a] --&gt; Y[b]
+    Y --&gt; X</code></pre>
+<p>FastDI detects cycles during planning (Python <code>_build_plan</code>) and at runtime in Rust’s recursive path, raising a clear error.</p>
+<h2 id="python-layers">Python Layers<a class="headerlink" href="#python-layers" title="Permanent link">&para;</a></h2>
+<h3 id="types-and-helpers-fastditypes">Types and helpers (<code>fastdi.types</code>)<a class="headerlink" href="#types-and-helpers-fastditypes" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>Key</code>, <code>Scope</code>, <code>Hook</code>: public type aliases.</li>
+<li><code>make_key(obj)</code>: stable string key for callables/strings/objects.</li>
+<li><code>Depends(target)</code>: declarative dependency marker for function parameters.</li>
+<li><code>extract_dep_keys(func)</code>: parses <code>Depends</code> markers from
+  <code>typing.Annotated[..., Depends(...)]</code> (Annotated-only style).</li>
+<li><code>CoreContainerProto</code>: Protocol describing the PyO3 <code>Container</code> interface to
+  satisfy editors and type checkers.</li>
+</ul>
+<h3 id="container-fastdicontainer">Container (<code>fastdi.container</code>)<a class="headerlink" href="#container-fastdicontainer" title="Permanent link">&para;</a></h3>
+<p>Responsibilities:</p>
+<ul>
+<li>Registration: <code>register(key, func, *, singleton, scope, dep_keys=None)</code></li>
+<li>Detects coroutine functions (<code>is_async</code>) and passes metadata to the core.</li>
+<li>Tracks Python‑side scopes: <code>transient</code>, <code>request</code>, or <code>singleton</code>.</li>
+<li>Overrides: <code>override(key_or_callable, replacement, *, singleton=False)</code></li>
+<li>Creates a top override layer, registers replacement, then pops the layer on
+    exit. Bumps an internal epoch counter on entry and on exit.</li>
+<li>Scopes:</li>
+<li><code>singleton</code>: cached in Rust provider entries.</li>
+<li><code>request</code>: cached per async task in a <code>WeakKeyDictionary</code> with a ContextVar
+    fallback for non‑task contexts.</li>
+<li><code>transient</code>: no caching.</li>
+<li>Hooks: <code>add_hook</code>, <code>remove_hook</code>, internal <code>_emit(event, payload)</code> with
+  <code>provider_start</code>, <code>provider_end</code>, and <code>cache_hit</code> events.</li>
+<li>Async resolution: <code>_resolve_key_async</code> mirrors Rust logic, awaits async
+  providers, applies request caching, and emits hook events.</li>
+<li>Planning:</li>
+<li><code>_build_plan(root_keys, allow_async)</code>: creates a topological order by
+    querying the core for per‑key metadata; rejects cycles and async providers
+    if <code>allow_async=False</code>.</li>
+<li><code>_run_plan_async(plan)</code>: iterative executor for async graphs in Python
+    honoring request/singleton caches and emitting events.</li>
+</ul>
+<p>Async execution sequence:</p>
+<pre class="mermaid"><code>sequenceDiagram
+    participant User as @ainject wrapper
+    participant Py as Container (Python)
+    participant Core as _fastdi_core (meta)
+    User-&gt;&gt;Py: await handler()
+    Py-&gt;&gt;Py: check epoch, rebuild plan if needed
+    loop for key in plan.order
+        Py-&gt;&gt;Py: request/singleton cache lookup
+        alt miss
+            Py-&gt;&gt;Core: get_provider_info(key)
+            Py-&gt;&gt;Py: await deps from computed
+            Py-&gt;&gt;Py: call provider (await if async)
+            Py-&gt;&gt;Py: update caches, computed
+        end
+    end
+    Py-&gt;&gt;User: await original func(values)</code></pre>
+<ul>
+<li>Epoch invalidation:</li>
+<li><code>_epoch</code> counter increments on registration and on entering/exiting an
+    <code>override</code> context. Decorators rebuild or revalidate plans if the epoch
+    changed since the last run.</li>
+</ul>
+<h3 id="decorators-fastdidecorators">Decorators (<code>fastdi.decorators</code>)<a class="headerlink" href="#decorators-fastdidecorators" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>provide(container, *, singleton=False, key=None, scope=None)</code></li>
+<li>Registers the decorated function and returns it unchanged.</li>
+<li><code>inject(container)</code> (sync)</li>
+<li>Compiles/validates a plan at decoration, stores the container epoch, and on
+    each call revalidates when the epoch changes. Executes via the Rust plan
+    executor (<code>resolve_many_plan</code>) for performance.</li>
+<li><code>ainject(container)</code> (async)</li>
+<li>Compiles a plan at decoration, stores epoch, rebuilds when the epoch
+    changes, executes iteratively in Python (<code>_run_plan_async</code>), and awaits the
+    original function.</li>
+</ul>
+<h2 id="typing-and-tooling">Typing and Tooling<a class="headerlink" href="#typing-and-tooling" title="Permanent link">&para;</a></h2>
+<ul>
+<li><code>_fastdi_core.pyi</code>: PEP‑561 stub describing the PyO3 extension’s <code>Container</code>.</li>
+<li><code>fastdi/py.typed</code>: marker so type checkers use inline hints.</li>
+<li>Protocol <code>CoreContainerProto</code> gives editors accurate method signatures.</li>
+<li>Decorators are typed to return zero‑arg wrappers with the original return
+  type, matching the runtime injection semantics.</li>
+<li>High-level components:</li>
+</ul>
+<pre class="mermaid"><code>flowchart LR
+    subgraph Python
+        A["fastdi.types&lt;br/&gt;Depends, extract_dep_keys"]
+        B["fastdi.container&lt;br/&gt;Container, async resolver, plan"]
+        C["fastdi.decorators&lt;br/&gt;provide, inject, ainject"]
+    end
+    D["PyO3 extension&lt;br/&gt;_fastdi_core.Container&lt;br/&gt;(Rust)"]
+    A --&gt; B
+    B --&gt; C
+    B &lt;--&gt; D
+    C --&gt; B</code></pre>
+<h2 id="observability">Observability<a class="headerlink" href="#observability" title="Permanent link">&para;</a></h2>
+<p>Hooks receive structured events:</p>
+<ul>
+<li><code>provider_start</code>: <code>{key, async}</code></li>
+<li><code>provider_end</code>: <code>{key, async, duration_s}</code></li>
+<li><code>cache_hit</code>: <code>{key, scope}</code></li>
+</ul>
+<p>Payloads can be consumed by loggers or metrics collectors. Hook failures are
+ignored to avoid disrupting resolution.</p>
+<p>Example event flow (simplified):</p>
+<pre class="mermaid"><code>sequenceDiagram
+    participant C as Container
+    participant H as Hook
+    C-&gt;&gt;H: provider_start {key, async}
+    C-&gt;&gt;H: provider_end {key, async, duration_s}
+    C-&gt;&gt;H: cache_hit {key, scope}</code></pre>
+<h2 id="error-handling">Error Handling<a class="headerlink" href="#error-handling" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Missing provider → <code>KeyError</code> (Rust <code>PyKeyError</code>).</li>
+<li>Cycles → <code>RuntimeError</code> (Rust <code>PyRuntimeError</code> and Python runtime errors).</li>
+<li>Async providers in sync paths → <code>RuntimeError</code> with a clear message.</li>
+</ul>
+<h2 id="packaging-and-local-dev">Packaging and Local Dev<a class="headerlink" href="#packaging-and-local-dev" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Built with maturin (<code>pyproject.toml</code>), exposed module: <code>_fastdi_core</code>.</li>
+<li>Local workflow with <code>uv</code>:</li>
+<li><code>uv venv .venv &amp;&amp; . .venv/bin/activate</code></li>
+<li><code>uv pip install maturin pytest pytest-asyncio</code></li>
+<li><code>uv run maturin develop -q</code></li>
+<li><code>python -m pytest -q -s</code></li>
+</ul>
+<h2 id="documentation">Documentation<a class="headerlink" href="#documentation" title="Permanent link">&para;</a></h2>
+<ul>
+<li>MkDocs config (<code>mkdocs.yml</code>) with Material theme and mkdocstrings.</li>
+<li>Reference pages pull docstrings directly from the modules.</li>
+</ul>
+<h2 id="roadmap">Roadmap<a class="headerlink" href="#roadmap" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Async executor in Rust (optional) or hybrid execution with <code>pyo3-asyncio</code>.</li>
+<li>FastAPI integration examples (routers/middleware glue).</li>
+<li>Metrics adapters (Prometheus/OpenTelemetry) using hooks.</li>
+<li>CI: wheel builds (Linux/macos/Windows) and docs publishing.</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "..", "features": [], "search": "../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.f55a23d4.min.js"></script>
+      
+    
+  </body>
+</html>
