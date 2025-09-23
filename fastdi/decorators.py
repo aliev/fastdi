@@ -79,7 +79,7 @@ def inject(container: Container):
             if missing:
                 keys_to_resolve = [key for _, key in missing]
                 resolved = container._core.resolve_many_plan(keys_to_resolve)
-                for (name, _), value in zip(missing, resolved):
+                for (name, _), value in zip(missing, resolved, strict=False):
                     bound.arguments[name] = value
             return func(*bound.args, **bound.kwargs)
 
@@ -159,7 +159,7 @@ def inject_method(container: Container):
             if missing:
                 keys_to_resolve = [key for _, key in missing]
                 resolved = container._core.resolve_many_plan(keys_to_resolve)
-                for (name, _), value in zip(missing, resolved):
+                for (name, _), value in zip(missing, resolved, strict=False):
                     bound.arguments[name] = value
             return func(*bound.args, **bound.kwargs)
 
