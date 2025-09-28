@@ -20,7 +20,7 @@ from typing import Any
 
 from .types import Hook, Key, Scope
 
-__all__ = ["PythonContainerCore"]
+__all__ = ["PythonContainerCore", "Plan"]
 
 
 @dataclass(slots=True)
@@ -35,7 +35,7 @@ class _ProviderRecord:
 
 
 @dataclass(slots=True)
-class _Plan:
+class Plan:
     """Compiled plan describing dependency execution order."""
 
     order: tuple[Key, ...]
@@ -195,10 +195,10 @@ class PythonContainerCore:
         except KeyError as exc:  # pragma: no cover - defensive
             raise KeyError(f"No provider registered for key: {key}") from exc
 
-    def _compile_plan(self, root_keys: Iterable[Key]) -> _Plan:
+    def _compile_plan(self, root_keys: Iterable[Key]) -> Plan:
         roots = tuple(root_keys)
         if not roots:
-            return _Plan(order=(), deps={}, has_async=False, roots=())
+            return Plan(order=(), deps={}, has_async=False, roots=())
 
         sorter: TopologicalSorter[Key] = TopologicalSorter()
         deps: dict[Key, tuple[Key, ...]] = {}
@@ -228,7 +228,7 @@ class PythonContainerCore:
             raise RuntimeError(f"Dependency cycle detected: {cycle}") from exc
 
         filtered_order = tuple(k for k in order if k in deps)
-        return _Plan(order=filtered_order, deps=deps, has_async=has_async, roots=roots)
+        return Plan(order=filtered_order, deps=deps, has_async=has_async, roots=roots)
 
     # --------------------------------------------------------- sync resolve --
     def resolve(self, key: Key) -> Any:
@@ -244,14 +244,14 @@ class PythonContainerCore:
     def resolve_many_plan(self, keys: Iterable[Key]) -> list[Any]:
         return self.resolve_many(keys)
 
-    def _execute_plan_sync(self, plan: _Plan) -> dict[Key, Any]:
+    def _execute_plan_sync(self, plan: Plan) -> dict[Key, Any]:
         computed: dict[Key, Any] = {}
         for key in plan.order:
             result = self._compute_key_sync(plan, key, computed)
             computed[key] = result
         return computed
 
-    def _compute_key_sync(self, plan: _Plan, key: Key, computed: dict[Key, Any]) -> Any:
+    def _compute_key_sync(self, plan: Plan, key: Key, computed: dict[Key, Any]) -> Any:
         record = self._resolve_record(key)
 
         if record.singleton and key in self._singleton_cache:
@@ -293,14 +293,14 @@ class PythonContainerCore:
         computed = await self._execute_plan_async(plan)
         return [computed[root] for root in plan.roots]
 
-    async def _execute_plan_async(self, plan: _Plan) -> dict[Key, Any]:
+    async def _execute_plan_async(self, plan: Plan) -> dict[Key, Any]:
         computed: dict[Key, Any] = {}
         for key in plan.order:
             value = await self._compute_key_async(plan, key, computed)
             computed[key] = value
         return computed
 
-    async def _compute_key_async(self, plan: _Plan, key: Key, computed: dict[Key, Any]) -> Any:
+    async def _compute_key_async(self, plan: Plan, key: Key, computed: dict[Key, Any]) -> Any:
         record = self._resolve_record(key)
 
         if record.singleton and key in self._singleton_cache:
@@ -349,3 +349,13 @@ class PythonContainerCore:
     @property
     def epoch(self) -> int:
         return self._epoch
+
+    # ----------------------------------------------------------- public plans --
+    def compile_plan(self, root_keys: Iterable[Key]) -> Plan:
+        return self._compile_plan(root_keys)
+
+    def run_plan_sync(self, plan: Plan) -> dict[Key, Any]:
+        return self._execute_plan_sync(plan)
+
+    async def run_plan_async(self, plan: Plan) -> dict[Key, Any]:
+        return await self._execute_plan_async(plan)
