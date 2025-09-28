@@ -18,6 +18,7 @@ from dataclasses import dataclass
 from graphlib import CycleError, TopologicalSorter
 from typing import Any
 
+from ._hooks import emit_hooks
 from .types import Hook, Key, Scope
 
 __all__ = ["PythonContainerCore", "Plan"]
@@ -67,11 +68,7 @@ class PythonContainerCore:
             self._hooks.remove(hook)
 
     def _emit(self, event: str, payload: dict[str, Any]) -> None:
-        for hook in list(self._hooks):
-            try:
-                hook(event, payload)
-            except Exception:
-                continue
+        emit_hooks(self._hooks, event, payload)
 
     # ---------------------------------------------------------- registration --
     def register_provider(

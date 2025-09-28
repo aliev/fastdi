@@ -11,17 +11,61 @@ from __future__ import annotations
 import inspect
 from collections.abc import Callable, Iterable
 from contextlib import contextmanager
-from typing import Any
+from typing import Any, Protocol
 
 from ._python_core import Plan, PythonContainerCore
 from .types import Hook, Key, Scope, extract_dep_keys, make_key
 
 
+class ContainerCore(Protocol):
+    """Protocol describing the functionality required by ``Container``."""
+
+    def add_hook(self, hook: Hook) -> None: ...
+    def remove_hook(self, hook: Hook) -> None: ...
+
+    def register_provider(
+        self,
+        key: Key,
+        func: Callable[..., Any],
+        singleton: bool,
+        is_async: bool,
+        dep_keys: Iterable[Key],
+        *,
+        scope: Scope | None = None,
+    ) -> None: ...
+
+    def begin_override_layer(self) -> None: ...
+    def set_override(
+        self,
+        key: Key,
+        func: Callable[..., Any],
+        singleton: bool,
+        is_async: bool,
+        dep_keys: Iterable[Key],
+        *,
+        scope: Scope | None = None,
+    ) -> None: ...
+    def end_override_layer(self) -> None: ...
+
+    def resolve(self, key: Key) -> Any: ...
+    def resolve_many(self, keys: Iterable[Key]) -> list[Any]: ...
+    def resolve_many_plan(self, keys: Iterable[Key]) -> list[Any]: ...
+
+    async def resolve_async(self, key: Key) -> Any: ...
+    async def resolve_many_async(self, keys: Iterable[Key]) -> list[Any]: ...
+
+    def compile_plan(self, root_keys: Iterable[Key]) -> Plan: ...
+    async def run_plan_async(self, plan: Plan) -> dict[Key, Any]: ...
+
+    @property
+    def epoch(self) -> int: ...
+
+
 class Container:
     """User-facing dependency injection container backed by Python primitives."""
 
-    def __init__(self) -> None:
-        self._core = PythonContainerCore()
+    def __init__(self, *, core: ContainerCore | None = None) -> None:
+        self._core: ContainerCore = core or PythonContainerCore()
 
     # ---- Hooks -----------------------------------------------------------------
     def add_hook(self, hook: Hook) -> None:
